@@ -20,6 +20,8 @@ import {
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
 import ArchiveIcon from '@mui/icons-material/Archive';
+import UnarchiveIcon from '@mui/icons-material/Unarchive';
+// import FilterAltIcon from '@mui/icons-material/FilterAlt';
 import axios, { AxiosError, AxiosResponse } from 'axios';
 
 const style = {
@@ -42,21 +44,15 @@ type Tasks = {
 	_archived: boolean;
 };
 
-// type ApiResponse = {
-// 	tasks: Tasks[];
-// };
-
 export default function Tasks() {
 	const userID = JSON.parse(localStorage.getItem('user-logado') as string);
 	const [tasks, setTasks] = useState<Tasks[]>([]);
+	const [tasksArchived, setTasksArchived] = useState<Tasks[]>([]);
 	const [task, setTask] = useState<Tasks>();
 	const [hasUpdate, setHasUpdate] = useState(true);
 	const [description, setDescription] = useState('');
-	const [detail, setDetail] = useState('');
-
 	const [descriptionFilter, setDescriptionFilter] = useState('');
-	const [archivedFilter, setArchivedFilter] = useState('');
-
+	const [detail, setDetail] = useState('');
 	const [openCreate, setOpenCreate] = useState(false);
 	const [openEdit, setOpenEdit] = useState(false);
 	const [openDelete, setOpenDelete] = useState(false);
@@ -64,13 +60,11 @@ export default function Tasks() {
 	const [message, setMessage] = useState('');
 	const [openSnack, setOpenSnack] = useState(false);
 	const [openSnackError, setOpenSnackError] = useState(false);
+
 	const handleOpenCreate = () => setOpenCreate(true);
 	const handleCloseCreate = () => setOpenCreate(false);
-	const handleOpenEdit = () => setOpenEdit(true);
 	const handleCloseEdit = () => setOpenEdit(false);
-	const handleOpenDelete = () => setOpenDelete(true);
 	const handleCloseDelete = () => setOpenDelete(false);
-	const handleOpenArchived = () => setOpenArchived(true);
 	const handleCloseArchived = () => setOpenArchived(false);
 
 	useEffect(() => {
@@ -78,7 +72,10 @@ export default function Tasks() {
 			const { data }: AxiosResponse<Tasks[]> = await axios.get(
 				process.env.REACT_APP_URL + `user/${userID}/tasks`
 			);
-			setTasks(data);
+			const notArchived = data.filter((task) => task._archived === false);
+			const tasksArchived = data.filter((task) => task._archived === true);
+			setTasks(notArchived);
+			setTasksArchived(tasksArchived);
 		}
 
 		if (hasUpdate) {
@@ -172,7 +169,7 @@ export default function Tasks() {
 				);
 				setHasUpdate(true);
 				setMessage('Recado deletado');
-				setOpenSnack(true);
+				setOpenSnackError(true);
 				handleCloseDelete();
 			}
 		} catch (err) {
@@ -183,32 +180,59 @@ export default function Tasks() {
 		}
 	}
 
-	// async function archiveTask(taskSelect: Tasks) {
-	// 	try {
-	// 		setTask(taskSelect);
-	// 		if (task) {
-	// 			const taskBody = {
-	// 				archived: true,
-	// 			};
+	async function archiveTask(taskSelect: Tasks) {
+		try {
+			setTask(taskSelect);
+			if (task) {
+				const taskBody = {
+					archived: true,
+				};
 
-	// 			const id = task.id;
+				const id = task._id;
 
-	// 			const response: AxiosResponse<{ tasks: Tasks[] }> = await axios.put(
-	// 				process.env.REACT_APP_URL + `user/${userID}/tasks/${id}/archived`,
-	// 				taskBody
-	// 			);
-	// 			setHasUpdate(true);
-	// 			setMessage('Recado arquivado');
-	// 			setOpenSnack(true);
-	// 			handleCloseDelete();
-	// 		}
-	// 	} catch (err) {
-	// 		const error = err as AxiosError<{ error: string }>;
-	// 		console.log('catch', error.response!.data.error);
-	// 		setMessage(error.response!.data.error);
-	// 		setOpenSnackError(true);
-	// 	}
-	// }
+				const response: AxiosResponse<{ tasks: Tasks[] }> = await axios.put(
+					process.env.REACT_APP_URL + `user/${userID}/tasks/${id}/archived`,
+					taskBody
+				);
+				setHasUpdate(true);
+				setMessage('Recado arquivado');
+				setOpenSnack(true);
+				handleCloseArchived();
+			}
+		} catch (err) {
+			const error = err as AxiosError<{ error: string }>;
+			console.log('catch', error.response!.data.error);
+			setMessage(error.response!.data.error);
+			setOpenSnackError(true);
+		}
+	}
+
+	async function unarchiveTask(taskSelect: Tasks) {
+		try {
+			setTask(taskSelect);
+			if (task) {
+				const taskBody = {
+					archived: false,
+				};
+
+				const id = task._id;
+
+				const response: AxiosResponse<{ tasks: Tasks[] }> = await axios.put(
+					process.env.REACT_APP_URL + `user/${userID}/tasks/${id}/archived`,
+					taskBody
+				);
+				setHasUpdate(true);
+				setMessage('Recado desarquivado');
+				setOpenSnack(true);
+				handleCloseArchived();
+			}
+		} catch (err) {
+			const error = err as AxiosError<{ error: string }>;
+			console.log('catch', error.response!.data.error);
+			setMessage(error.response!.data.error);
+			setOpenSnackError(true);
+		}
+	}
 	return (
 		<>
 			<Box
@@ -298,7 +322,7 @@ export default function Tasks() {
 														<Tooltip title="Arquivar">
 															<IconButton
 																aria-label="archive"
-																// onClick={() => archiveTask(row)}
+																onClick={() => archiveTask(row)}
 															>
 																<ArchiveIcon color="secondary" />
 															</IconButton>
@@ -310,15 +334,22 @@ export default function Tasks() {
 									})}
 								</TableBody>
 							</Table>
+							<Button
+								onClick={() => setOpenArchived(true)}
+								variant="text"
+								className="rounded-full mt-2"
+							>
+								Filtrar
+							</Button>
 						</TableContainer>
 					)}
-					{/* <Button
+					<Button
 						onClick={() => setOpenArchived(true)}
-						variant="contained"
-						className="rounded-full self-end"
+						variant="text"
+						className="rounded-full mt-2"
 					>
 						Arquivados
-					</Button> */}
+					</Button>
 				</Box>
 			</Box>
 			<Modal
@@ -428,14 +459,14 @@ export default function Tasks() {
 					</Button>
 				</Box>
 			</Modal>
-			{/* <Modal
+			<Modal
 				open={openArchived}
 				onClose={handleCloseArchived}
 				aria-labelledby="modal-modal-title"
 				aria-describedby="modal-modal-description"
 			>
 				<Box sx={style}>
-					{tasks.length < 1 ? (
+					{tasksArchived.length < 1 ? (
 						<Box
 							display="flex"
 							justifyContent="center"
@@ -466,37 +497,21 @@ export default function Tasks() {
 									</TableRow>
 								</TableHead>
 								<TableBody>
-									{tasks.map((row: Tasks) => {
+									{tasksArchived.map((row: Tasks) => {
 										console.log(row);
 
 										return (
-											<TableRow key={row.id}>
-												<TableCell>{row.description}</TableCell>
-												<TableCell>{row.detail}</TableCell>
+											<TableRow key={row._id}>
+												<TableCell>{row._description}</TableCell>
+												<TableCell>{row._detail}</TableCell>
 												<TableCell align="center">
 													<Box>
-														<Tooltip title="Delete">
-															<IconButton
-																aria-label="Remover"
-																onClick={() => handleOpenToDelete(row)}
-															>
-																<DeleteIcon color="error" />
-															</IconButton>
-														</Tooltip>
-														<Tooltip title="Editar">
-															<IconButton
-																aria-label="edit"
-																onClick={() => handleOpenToEdit(row)}
-															>
-																<EditIcon color="primary" />
-															</IconButton>
-														</Tooltip>
-														<Tooltip title="Arquivar">
+														<Tooltip title="Desarquivar">
 															<IconButton
 																aria-label="archive"
-																onClick={() => archiveTask(row)}
+																onClick={() => unarchiveTask(row)}
 															>
-																<ArchiveIcon color="secondary" />
+																<UnarchiveIcon color="success" />
 															</IconButton>
 														</Tooltip>
 													</Box>
@@ -509,7 +524,7 @@ export default function Tasks() {
 						</TableContainer>
 					)}
 				</Box>
-			</Modal> */}
+			</Modal>
 			<Snackbar open={openSnack} autoHideDuration={6000}>
 				<Alert onClose={handleClose} severity="success" sx={{ width: '100%' }}>
 					{message}
