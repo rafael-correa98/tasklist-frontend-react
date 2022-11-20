@@ -46,7 +46,6 @@ export default function Signup() {
 			window.setTimeout(() => navigate('/login'), 4000);
 		} catch (err) {
 			const error = err as AxiosError<{ error: string }>;
-			console.log('catch', error.response!.data.error);
 			setMessage(error.response!.data.error);
 			setOpenSnackError(true);
 		}

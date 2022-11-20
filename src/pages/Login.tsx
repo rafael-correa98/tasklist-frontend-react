@@ -46,10 +46,7 @@ export default function Login() {
 				id: string;
 				name: string;
 				password: string;
-				token: string;
 			}> = await axios.post(process.env.REACT_APP_URL + 'user/login', myObject);
-
-			console.log(data.id);
 
 			localStorage.setItem('user-logado', JSON.stringify(data.id));
 
@@ -58,7 +55,6 @@ export default function Login() {
 			window.setTimeout(() => navigate('/tasklist'), 4000);
 		} catch (err) {
 			const error = err as AxiosError<{ error: string }>;
-			console.log('catch', error.response!.data.error);
 			setMessage(error.response!.data.error);
 			setOpenSnackError(true);
 		}

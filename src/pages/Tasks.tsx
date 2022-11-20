@@ -38,10 +38,10 @@ const style = {
 };
 
 type Tasks = {
-	_id: string;
-	_description: string;
-	_detail: string;
-	_archived: boolean;
+	id: string;
+	description: string;
+	detail: string;
+	archived: boolean;
 };
 
 export default function Tasks() {
@@ -72,8 +72,9 @@ export default function Tasks() {
 			const { data }: AxiosResponse<Tasks[]> = await axios.get(
 				process.env.REACT_APP_URL + `user/${userID}/tasks`
 			);
-			const notArchived = data.filter((task) => task._archived === false);
-			const tasksArchived = data.filter((task) => task._archived === true);
+
+			const notArchived = data.filter((task) => task.archived === false);
+			const tasksArchived = data.filter((task) => task.archived === true);
 			setTasks(notArchived);
 			setTasksArchived(tasksArchived);
 		}
@@ -124,7 +125,6 @@ export default function Tasks() {
 			setDetail('');
 		} catch (err) {
 			const error = err as AxiosError<{ error: string }>;
-			console.log('catch', error.response!.data.error);
 			setMessage(error.response!.data.error);
 			setOpenSnackError(true);
 		}
@@ -138,7 +138,7 @@ export default function Tasks() {
 					detail,
 				};
 
-				const id = task._id;
+				const id = task.id;
 
 				const response: AxiosResponse<{ tasks: Tasks[] }> = await axios.put(
 					process.env.REACT_APP_URL + `user/${userID}/tasks/${id}`,
@@ -153,7 +153,6 @@ export default function Tasks() {
 			}
 		} catch (err) {
 			const error = err as AxiosError<{ error: string }>;
-			console.log('catch', error.response!.data.error);
 			setMessage(error.response!.data.error);
 			setOpenSnackError(true);
 		}
@@ -162,7 +161,7 @@ export default function Tasks() {
 	async function deleteTask() {
 		try {
 			if (task) {
-				const id = task._id;
+				const id = task.id;
 
 				const response: AxiosResponse<{ tasks: Tasks[] }> = await axios.delete(
 					process.env.REACT_APP_URL + `user/${userID}/tasks/${id}`
@@ -174,7 +173,6 @@ export default function Tasks() {
 			}
 		} catch (err) {
 			const error = err as AxiosError<{ error: string }>;
-			console.log('catch', error.response!.data.error);
 			setMessage(error.response!.data.error);
 			setOpenSnackError(true);
 		}
@@ -188,7 +186,7 @@ export default function Tasks() {
 					archived: true,
 				};
 
-				const id = task._id;
+				const id = task.id;
 
 				const response: AxiosResponse<{ tasks: Tasks[] }> = await axios.put(
 					process.env.REACT_APP_URL + `user/${userID}/tasks/${id}/archived`,
@@ -201,7 +199,6 @@ export default function Tasks() {
 			}
 		} catch (err) {
 			const error = err as AxiosError<{ error: string }>;
-			console.log('catch', error.response!.data.error);
 			setMessage(error.response!.data.error);
 			setOpenSnackError(true);
 		}
@@ -215,7 +212,7 @@ export default function Tasks() {
 					archived: false,
 				};
 
-				const id = task._id;
+				const id = task.id;
 
 				const response: AxiosResponse<{ tasks: Tasks[] }> = await axios.put(
 					process.env.REACT_APP_URL + `user/${userID}/tasks/${id}/archived`,
@@ -228,7 +225,6 @@ export default function Tasks() {
 			}
 		} catch (err) {
 			const error = err as AxiosError<{ error: string }>;
-			console.log('catch', error.response!.data.error);
 			setMessage(error.response!.data.error);
 			setOpenSnackError(true);
 		}
@@ -298,9 +294,9 @@ export default function Tasks() {
 								<TableBody>
 									{tasks.map((row: Tasks) => {
 										return (
-											<TableRow key={row._id}>
-												<TableCell>{row._description}</TableCell>
-												<TableCell>{row._detail}</TableCell>
+											<TableRow key={row.id}>
+												<TableCell>{row.description}</TableCell>
+												<TableCell>{row.detail}</TableCell>
 												<TableCell align="center">
 													<Box>
 														<Tooltip title="Delete">
@@ -498,12 +494,10 @@ export default function Tasks() {
 								</TableHead>
 								<TableBody>
 									{tasksArchived.map((row: Tasks) => {
-										console.log(row);
-
 										return (
-											<TableRow key={row._id}>
-												<TableCell>{row._description}</TableCell>
-												<TableCell>{row._detail}</TableCell>
+											<TableRow key={row.id}>
+												<TableCell>{row.description}</TableCell>
+												<TableCell>{row.detail}</TableCell>
 												<TableCell align="center">
 													<Box>
 														<Tooltip title="Desarquivar">
